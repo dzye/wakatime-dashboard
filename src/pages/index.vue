@@ -144,7 +144,7 @@ const option = reactive({ option: [] })
 
 onMounted(() => {
   axios
-    .get('https://api.github.com/gists/75f3b2ec23c7f69594ca3d9e8b7ea81d')
+    .get('https://api.github.com/gists/6530ddc327cf54a5ef01204a4cca17a5')
     .then((response: any): any => fetchSingleFile(response))
     .then((values) => {
       const data = values.reduce((sum: any, current: any) => {

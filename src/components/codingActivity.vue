@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineProps, onMounted, ref } from 'vue'
+import { defineProps, onMounted, ref, watch } from 'vue'
 import * as echarts from 'echarts'
 import dayjs from 'dayjs'
 const props = defineProps({
@@ -9,11 +9,12 @@ const getFormateDate = (date) => {
   return dayjs(date).format('YYYYMMDD')
 }
 const myRef = ref<any>(null)
-onMounted(() => {
-  setTimeout(() => {
+watch(
+  () => props.option,
+  () => {
     drawChart()
-  }, 20)
-})
+  },
+)
 const getOriginData = () => {
   const chartData = props.option
   const projectContainer = {}
@@ -49,10 +50,44 @@ const drawChart = () => {
   // 初始化echarts实例
   const Chart = echarts.init(myRef.value)
   const originData = getOriginData()
-  console.log(getFields())
-  console.log(originData)
+  const dates = getFields()
+  const echertsData = []
+  originData.forEach((data) => {
+    const projectName = data.name
+    echertsData.push({
+      name: projectName,
+      type: 'bar',
+      stack: 'total',
+      label: {
+        show: true,
+      },
+      emphasis: {
+        focus: 'series',
+      },
+      data: dates.map((date) => {
+        return data[date]
+      }),
+    })
+  })
+  const option = {
+    legend: {},
+    grid: {
+      left: '3%',
+      right: '4%',
+      bottom: '3%',
+      containLabel: true,
+    },
+    xAxis: {
+      type: 'category',
+      data: dates,
+    },
+    yAxis: {
+      type: 'value',
+    },
+    series: echertsData,
+  }
   // 父组件传来的实例参数
-  Chart.setOption(props.option)
+  Chart.setOption(option)
   window.addEventListener('resize', () => {
     // 页面大小变化后Echarts也更改大小
     Chart.resize()
