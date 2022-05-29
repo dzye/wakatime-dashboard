@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { defineProps, onMounted, ref, watch } from 'vue'
+import { defineProps, ref, watch } from 'vue'
 import * as echarts from 'echarts'
 import dayjs from 'dayjs'
 const props = defineProps({
   option: Object,
 })
 const getFormateDate = (date) => {
-  return dayjs(date).format('YYYYMMDD')
+  return dayjs(date).format('YYYY/MM/DD')
 }
 const myRef = ref<any>(null)
 watch(
@@ -15,26 +15,36 @@ watch(
     drawChart()
   },
 )
+
+const dateTotal = {}
 const getOriginData = () => {
   const chartData = props.option
+  console.log(chartData)
   const projectContainer = {}
   chartData.forEach((element) => {
     const currentDate = getFormateDate(element.range.date)
+    if (!dateTotal[currentDate])
+      dateTotal[currentDate] = 0
+
     element.projects.forEach((project) => {
-      const hours = project.total_seconds / 3600
+      const second = project.total_seconds
+      dateTotal[currentDate] = dateTotal[currentDate] + second
       // 如果项目名称已经存在的话，则直接把值追加到该对象
       if (projectContainer[project.name]) {
-        projectContainer[project.name][currentDate] = hours
+        projectContainer[project.name][currentDate] = second
+        projectContainer[project.name].formatTime = formatSecond(project.total_seconds)
       }
       else {
         // 不存在的话,则新加
         projectContainer[project.name] = {
           name: project.name,
-          [currentDate]: project.total_seconds / 3600,
+          formatTime: formatSecond(project.total_seconds),
+          [currentDate]: project.total_seconds,
         }
       }
     })
   })
+  console.log(dateTotal)
   return Object.keys(projectContainer).map((name) => {
     return projectContainer[name]
   })
@@ -44,6 +54,24 @@ const getFields = () => {
   return chartData.map((data) => {
     return getFormateDate(data.range.date)
   })
+}
+/**
+ * 格式化秒
+ * @param result
+ * @returns {string}
+ */
+const formatSecond = (result) => {
+  const h = Math.floor((result / 3600) % 24)
+  const m = Math.floor((result / 60) % 60)
+  const s = Math.floor(result % 60)
+  result = `${s}秒`
+  if (m > 0)
+    result = `${m}分钟${result}`
+
+  if (h > 0)
+    result = `${h}小时${result}`
+
+  return result
 }
 // 绘制折线图
 const drawChart = () => {
@@ -59,7 +87,7 @@ const drawChart = () => {
       type: 'bar',
       stack: 'total',
       label: {
-        show: true,
+        show: false,
       },
       emphasis: {
         focus: 'series',
@@ -69,7 +97,38 @@ const drawChart = () => {
       }),
     })
   })
+  console.log(dateTotal)
+  echertsData.unshift({
+    name: 'Total',
+    type: 'line',
+    yAxisIndex: 1,
+    tooltip: {
+      valueFormatter(value) {
+        return `formatSecond(value)`
+      },
+    },
+    data: Object.values(dateTotal),
+  })
   const option = {
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: {
+        type: 'shadow',
+      },
+      formatter: (params) => {
+        let res = `${params[0].name} <br/>`
+        for (const item of params) {
+          if (item.value) {
+            if (item.seriesName === 'Total')
+              res += `<span style="font-size:18px;font-weight:500;"> ${item.seriesName} ：${formatSecond(item.value)}</span><br/>`
+
+            else
+              res += `<span style="background: ${item.color}; height:10px; width: 10px; border-radius: 50%;display: inline-block;margin-right:10px;"></span> ${item.seriesName} ：${formatSecond(item.value)}<br/>`
+          }
+        }
+        return res
+      },
+    },
     legend: {},
     grid: {
       left: '3%',
@@ -81,9 +140,25 @@ const drawChart = () => {
       type: 'category',
       data: dates,
     },
-    yAxis: {
+    yAxis: [{
       type: 'value',
-    },
+      axisLine: {
+        show: false,
+      },
+      axisLabel: { show: false },
+      axisTick: {
+        show: false,
+      },
+    }, {
+      type: 'value',
+      axisLine: {
+        show: false,
+      },
+      axisLabel: { show: false },
+      axisTick: {
+        show: false,
+      },
+    }],
     series: echertsData,
   }
   // 父组件传来的实例参数

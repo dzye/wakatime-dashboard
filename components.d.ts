@@ -7,7 +7,10 @@ declare module '@vue/runtime-core' {
   export interface GlobalComponents {
     CodingActivity: typeof import('./src/components/codingActivity.vue')['default']
     Counter: typeof import('./src/components/Counter.vue')['default']
+    Durations: typeof import('./src/components/durations.vue')['default']
     Footer: typeof import('./src/components/Footer.vue')['default']
+    LanguagesPie: typeof import('./src/components/languagesPie.vue')['default']
+    ProjectTime: typeof import('./src/components/projectTime.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
   }
