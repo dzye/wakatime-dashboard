@@ -2,6 +2,22 @@
 import { onMounted, reactive } from 'vue'
 import axios from 'axios'
 import codingActivity from '@/components/codingActivity.vue'
+const gistId = ref('')
+const getData = () => {
+  initData()
+}
+function initData() {
+  axios.get(`https://api.github.com/gists/${gistId.value}`)
+    .then((response: any): any => fetchSingleFile(response))
+    .then((values) => {
+      const data = values.reduce((sum: any, current: any) => {
+        sum.push(current.data)
+        return sum
+      }, [])
+      option.option = getLastData(data)
+      const total = getTotal(option.option)
+    })
+}
 function fetchSingleFile(response: any = {}) {
   const selectedValue = 7
   const {
@@ -39,26 +55,21 @@ function getLastData(data: any) {
 const option = reactive({ option: [] })
 
 onMounted(() => {
-  axios
-    .get('https://api.github.com/gists/6530ddc327cf54a5ef01204a4cca17a5')
-    .then((response: any): any => fetchSingleFile(response))
-    .then((values) => {
-      const data = values.reduce((sum: any, current: any) => {
-        sum.push(current.data)
-        return sum
-      }, [])
-      option.option = getLastData(data)
-      const total = getTotal(option.option)
-    })
+  if (gistId.value)
+    initData()
 })
 </script>
 
 <template>
-  <div class="w-100vw bg-red dark:bg-blue h-50px">
-    <input type="text">
-    <button>最近7天</button>
-    <button>最近30天</button>
-    <button>最近90天</button>
+  <div>
+    <n-input-group>
+      <n-input v-model="gistId" />
+      <n-button type="primary" @click="getData">
+        <template #icon>
+          <n-icon i-carbon:search />
+        </template>
+      </n-button>
+    </n-input-group>
   </div>
   <div>
     <CodingActivity :option="option.option" />
