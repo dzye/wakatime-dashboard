@@ -2,12 +2,13 @@
 import { onMounted, reactive } from 'vue'
 import axios from 'axios'
 import codingActivity from '@/components/codingActivity.vue'
-const gistId = ref('')
+const gistId = ref(null)
 const getData = () => {
   initData()
 }
 function initData() {
-  axios.get(`https://api.github.com/gists/${gistId.value}`)
+  axios
+    .get(`https://api.github.com/gists/${gistId.value}`)
     .then((response: any): any => fetchSingleFile(response))
     .then((values) => {
       const data = values.reduce((sum: any, current: any) => {
@@ -61,17 +62,33 @@ onMounted(() => {
 </script>
 
 <template>
-  <div>
-    <n-input-group>
-      <n-input v-model="gistId" />
-      <n-button type="primary" @click="getData">
+  <n-layout>
+    <n-layout-header class="w100vw flex p2 dark:bg-#001529">
+      <n-input v-model:value="gistId" class="important-w25%" />
+      <n-button type="primary" class="important-w6% ml-1" @click="getData">
         <template #icon>
           <n-icon i-carbon:search />
         </template>
       </n-button>
-    </n-input-group>
-  </div>
-  <div>
-    <CodingActivity :option="option.option" />
-  </div>
+    </n-layout-header>
+    <n-layout-content content-style="padding: 24px;">
+      <n-grid :x-gap="12" :y-gap="8" :cols="2">
+        <n-grid-item>
+          <CodingActivity :option="option.option" />
+        </n-grid-item>
+        <n-grid-item>
+          <CodingActivity :option="option.option" />
+        </n-grid-item>
+        <n-grid-item>
+          <CodingActivity :option="option.option" />
+        </n-grid-item>
+        <n-grid-item>
+          <CodingActivity :option="option.option" />
+        </n-grid-item>
+      </n-grid>
+    </n-layout-content>
+    <n-layout-footer>
+      <Footer />
+    </n-layout-footer>
+  </n-layout>
 </template>

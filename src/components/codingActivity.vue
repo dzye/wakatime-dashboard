@@ -171,7 +171,5 @@ const drawChart = () => {
 </script>
 
 <template>
-  <div>
-    <div ref="myRef" :style="{ width: '100%', height: '300px' }" />
-  </div>
+  <div ref="myRef" :style="{ height: '300px' }" />
 </template>
